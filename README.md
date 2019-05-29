@@ -9,9 +9,9 @@
 The application uses image segmentation from inputted images for the purpose of creating collages. Hopefully getting aesthetically pleasing or at least interesting results. We'll use  a bigger image for definition of a background while smaller ones will be extracted of interesting features to be pasted on to the canvas.
 
 ### Datasets:
-The images will be obtained from two different datasets (included in folders on the repository):
-* Corel1000 - chosen for the smaller images;
-* Flickr15K - chosen for the background images
+The images will be obtained from two different datasets:
+* Corel1000 - chosen for the smaller images (.zip in repository);
+* Flickr15K - chosen for the background images (http://kahlan.eps.surrey.ac.uk/data/Flickr25K/Flickr15K.zip)
 Both datasets were suggested by professor Moacir Ponti.
 
 ### Steps:
