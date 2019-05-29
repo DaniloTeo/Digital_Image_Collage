@@ -9,10 +9,9 @@ from numpy.random import randint
 bg = cv2.imread("bg.jpg")
 bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
 
-for file in range(50):
-	index = randint(low=0, high=100)
-	print(index)
-	img = cv2.imread("./Corel1000/1/"+str(index)+".jpg")
+for file in range(100):
+	print(file)
+	img = cv2.imread("./Corel1000/10/"+str(file)+".jpg")
 	auximg = np.array(img)
 	sal = cv2.saliency.StaticSaliencySpectralResidual_create()
 	map = sal.computeSaliency(img)
@@ -35,6 +34,8 @@ for file in range(50):
 			
 	#cv2.imshow('arr', arr)
 	threshimg = np.array(img)
+	
+	aux = np.copy(bg)
 
 	randx = randint(low=0, high=bg.shape[0] - threshimg.shape[0])
 	randy = randint(low=0, high=bg.shape[1] - threshimg.shape[1])
@@ -42,10 +43,10 @@ for file in range(50):
 	for i in range(randx, randx + img.shape[0]):
 		for j in range(randy, randy + img.shape[1]):
 			if arr[i - randx][j - randy][0] != 0 and arr[i - randx][j - randy][1] != 0 and arr[i - randx][j - randy][2] != 0:
-				bg[i][j] = threshimg[i - randx][j - randy]
+				aux[i][j] = threshimg[i - randx][j - randy]
 
 
-	cv2.imshow('collage', bg)
+	cv2.imwrite('./Imagens_Teste/' + str(file) + '.jpg', aux)
 
 
 
