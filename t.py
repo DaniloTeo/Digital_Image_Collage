@@ -1,7 +1,10 @@
 import cv2
 from cv2 import saliency
 import numpy as np
-from matplotlib import pyplot as plt
+from numpy.random import randint
+
+bg = cv2.imread("bg.jpg")
+bg = cv2.resize(bg, (int(bg.shape[1] * 0.2),int(bg.shape[0] * 0.2)))
 
 img = cv2.imread("./Corel1000/9/79.jpg")
 auximg = np.array(img)
@@ -27,18 +30,17 @@ for i in range(len(contours)):
 cv2.imshow('arr', arr)
 threshimg = np.array(img)
 
-for i in range(img.shape[0]):
-	for j in range(img.shape[1]):
-		if arr[i][j][0] == 0 and arr[i][j][1] == 0 and arr[i][j][2] == 0:
-			threshimg[i][j] = [0,0,0]
+randx = randint(low=0, high=bg.shape[0] - threshimg.shape[0])
+randy = randint(low=0, high=bg.shape[1] - threshimg.shape[1])
 
-cv2.imshow('cut', threshimg)
+for i in range(randx, randx + img.shape[0]):
+	for j in range(randy, randy + img.shape[1]):
+		if arr[i - randx][j - randy][0] != 0 and arr[i - randx][j - randy][1] != 0 and arr[i - randx][j - randy][2] != 0:
+			bg[i][j] = threshimg[i - randx][j - randy]
 
-# cv2.imshow("image", img)
-# cv2.imshow("saliency spectral", map)
-# cv2.imshow("saliency fine grained", map2)
 
-# cv2.imshow("threshold 1", thresh)
-# cv2.imshow("threshold 2", thresh2)
+cv2.imshow('collage', bg)
+
+
 
 cv2.waitKey(0)
