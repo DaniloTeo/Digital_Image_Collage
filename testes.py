@@ -2,16 +2,17 @@ import cv2
 from cv2 import saliency
 import numpy as np
 from numpy.random import randint
-# TO DO:
-# Realizar cortes em todas as imagens do dataset e
-# pasta 10, 9, 7, 3, 
+
+FOLDER_RANGE = [0, 12, 18, 17, 4, 11, 30, 2, 6, 10]
 
 bg = cv2.imread("bg.jpg")
 bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
 
-for file in range(100):
-	print(file)
-	img = cv2.imread("./Corel1000/10/"+str(file)+".jpg")
+for n in range(10):
+	folder = randint(1,10)
+	file = randint(0, FOLDER_RANGE[folder])
+	print(f"{folder}/{file}")
+	img = cv2.imread("./Imagens_Teste/" + str(folder) + "/"+str(file)+".jpg")
 	auximg = np.array(img)
 	sal = cv2.saliency.StaticSaliencySpectralResidual_create()
 	map = sal.computeSaliency(img)
@@ -35,7 +36,7 @@ for file in range(100):
 	#cv2.imshow('arr', arr)
 	threshimg = np.array(img)
 	
-	aux = np.copy(bg)
+	#aux = np.copy(bg)
 
 	randx = randint(low=0, high=bg.shape[0] - threshimg.shape[0])
 	randy = randint(low=0, high=bg.shape[1] - threshimg.shape[1])
@@ -43,11 +44,11 @@ for file in range(100):
 	for i in range(randx, randx + img.shape[0]):
 		for j in range(randy, randy + img.shape[1]):
 			if arr[i - randx][j - randy][0] != 0 and arr[i - randx][j - randy][1] != 0 and arr[i - randx][j - randy][2] != 0:
-				aux[i][j] = threshimg[i - randx][j - randy]
+				bg[i][j] = threshimg[i - randx][j - randy]
 
 
-	cv2.imwrite('./Imagens_Teste/' + str(file) + '.jpg', aux)
+	#cv2.imwrite('./Imagens_Teste/' + str(file) + '.jpg', aux)
 
 
-
+cv2.imshow('collage', bg)
 cv2.waitKey(0)
