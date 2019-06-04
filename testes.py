@@ -3,15 +3,15 @@ from cv2 import saliency
 import numpy as np
 from numpy.random import randint
 
-FOLDER_RANGE = [0, 12, 18, 17, 4, 11, 30, 2, 6, 10]
+FOLDER_RANGE = [12, 18, 17, 4, 11, 30, 2, 6, 10, 0]
 
 bg = cv2.imread("bg.jpg")
 bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
 
 for n in range(10):
 	folder = randint(1,10)
-	file = randint(0, FOLDER_RANGE[folder])
-	print(f"{folder}/{file}")
+	file = randint(0, FOLDER_RANGE[folder-1])
+	print(f"{folder}/{file}.jpg")
 	img = cv2.imread("./Imagens_Teste/" + str(folder) + "/"+str(file)+".jpg")
 	auximg = np.array(img)
 	sal = cv2.saliency.StaticSaliencySpectralResidual_create()
