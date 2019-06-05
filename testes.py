@@ -2,6 +2,11 @@ import cv2
 from cv2 import saliency
 import numpy as np
 from numpy.random import randint
+# definir regioes no background considerando overlap
+# interpolar RGB do sticker com o background
+# k-means para fazer colagem com objetos similares ou diferentes [dataset de stickers]
+
+
 
 FOLDER_RANGE = [12, 18, 17, 4, 11, 30, 2, 6, 10, 0]
 
