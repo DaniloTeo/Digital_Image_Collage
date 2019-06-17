@@ -2,23 +2,19 @@ import cv2
 from cv2 import saliency
 import numpy as np
 from numpy.random import randint
-# definir regioes no background considerando overlap
-# interpolar RGB do sticker com o background
+
 # k-means para fazer colagem com objetos similares ou diferentes [dataset de stickers]
-
-
 
 FOLDER_RANGE = [12, 18, 17, 4, 11, 30, 2, 6, 10, 0]
 
 bg = cv2.imread("bg.jpg")
 bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
 
-for n in range(10):
+for n in range(25):
 	folder = randint(1,10)
 	file = randint(0, FOLDER_RANGE[folder-1])
-	print(f"{folder}/{file}.jpg")
 	img = cv2.imread("./Imagens_Teste/" + str(folder) + "/"+str(file)+".jpg")
-	auximg = np.array(img)
+
 	sal = cv2.saliency.StaticSaliencySpectralResidual_create()
 	map = sal.computeSaliency(img)
 	map = (map[1] * 255).astype("uint8")
@@ -41,17 +37,25 @@ for n in range(10):
 	#cv2.imshow('arr', arr)
 	threshimg = np.array(img)
 	
-	#aux = np.copy(bg)
-
-	randx = randint(low=0, high=bg.shape[0] - threshimg.shape[0])
-	randy = randint(low=0, high=bg.shape[1] - threshimg.shape[1])
+	if n % 4 == 0:
+		randx = randint(low=0, high=(bg.shape[0] - threshimg.shape[0])//2)
+		randy = randint(low=0, high=(bg.shape[1] - threshimg.shape[1])//2)
+	elif n % 4 == 1:
+		randx = randint(low=(bg.shape[0] - threshimg.shape[0])//2, high=bg.shape[0] - threshimg.shape[0])
+		randy = randint(low=0, high=(bg.shape[1] - threshimg.shape[1])//2)
+	elif n % 4 == 2:
+		randx = randint(low=(bg.shape[0] - threshimg.shape[0])//2, high=bg.shape[0] - threshimg.shape[0])
+		randy = randint(low=(bg.shape[1] - threshimg.shape[1])//2, high=bg.shape[1] - threshimg.shape[1])
+	elif n % 4 == 3:
+		randx = randint(low=0, high=(bg.shape[0] - threshimg.shape[0])//2)
+		randy = randint(low=(bg.shape[1] - threshimg.shape[1])//2, high=bg.shape[1] - threshimg.shape[1])
 
 	for i in range(randx, randx + img.shape[0]):
 		for j in range(randy, randy + img.shape[1]):
 			if arr[i - randx][j - randy][0] != 0 and arr[i - randx][j - randy][1] != 0 and arr[i - randx][j - randy][2] != 0:
-				bg[i][j] = threshimg[i - randx][j - randy]
+				bg[i][j] = (3 * (threshimg[i - randx][j - randy].astype(float)) + (bg[i][j].astype(float))) // 4
 
-
+	bg = bg.astype(np.uint8)
 	#cv2.imwrite('./Imagens_Teste/' + str(file) + '.jpg', aux)
 
 
