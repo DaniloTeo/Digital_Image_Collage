@@ -6,10 +6,14 @@ from numpy.random import randint
 # k-means para fazer colagem com objetos similares ou diferentes [dataset de stickers]
 
 FOLDER_RANGE = [12, 18, 17, 4, 11, 30, 2, 6, 10, 0]
+FOLDER_RANGE_BG = [388, 30, 357, 24, 390, 29]
 
-bg = cv2.imread("bg.jpg")
+folder = randint(1,7);print(folder)
+file = randint(1, FOLDER_RANGE_BG[folder-1]);print(file)
+
+bg = cv2.imread("./My_Flickr/images/" + str(folder) + "/" + str(file) + ".jpg")
 bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
-
+print(f"shape de bg: {bg.shape}")
 for n in range(25):
 	folder = randint(1,10)
 	file = randint(0, FOLDER_RANGE[folder-1])
@@ -36,19 +40,34 @@ for n in range(25):
 			
 	#cv2.imshow('arr', arr)
 	threshimg = np.array(img)
+
+	if bg.shape[0] < threshimg.shape[0]:
+		aux_high_x = threshimg.shape[0]
+		aux_low_x = bg.shape[0]
+	else:
+		aux_high_x = bg.shape[0]
+		aux_low_x= threshimg.shape[0]
+
+	if bg.shape[1] < threshimg.shape[1]:
+		aux_high_y = threshimg.shape[1]
+		aux_low_y = bg.shape[1]
+
+	else:
+		aux_high_y = bg.shape[1]
+		aux_low_y = threshimg.shape[1]
 	
 	if n % 4 == 0:
-		randx = randint(low=0, high=(bg.shape[0] - threshimg.shape[0])//2)
-		randy = randint(low=0, high=(bg.shape[1] - threshimg.shape[1])//2)
+		randx = randint(low=0, high=(aux_high_x - aux_low_x)//2)
+		randy = randint(low=0, high=(aux_high_y - aux_low_y)//2)
 	elif n % 4 == 1:
-		randx = randint(low=(bg.shape[0] - threshimg.shape[0])//2, high=bg.shape[0] - threshimg.shape[0])
-		randy = randint(low=0, high=(bg.shape[1] - threshimg.shape[1])//2)
+		randx = randint(low=(aux_high_x - aux_low_x)//2, high=aux_high_x - aux_low_x)
+		randy = randint(low=0, high=(aux_high_y - aux_low_y)//2)
 	elif n % 4 == 2:
-		randx = randint(low=(bg.shape[0] - threshimg.shape[0])//2, high=bg.shape[0] - threshimg.shape[0])
-		randy = randint(low=(bg.shape[1] - threshimg.shape[1])//2, high=bg.shape[1] - threshimg.shape[1])
+		randx = randint(low=(aux_high_x - aux_low_x)//2, high=aux_high_x - aux_low_x)
+		randy = randint(low=(aux_high_y - aux_low_y)//2, high=aux_high_y - aux_low_y)
 	elif n % 4 == 3:
-		randx = randint(low=0, high=(bg.shape[0] - threshimg.shape[0])//2)
-		randy = randint(low=(bg.shape[1] - threshimg.shape[1])//2, high=bg.shape[1] - threshimg.shape[1])
+		randx = randint(low=0, high=(aux_high_x - aux_low_x)//2)
+		randy = randint(low=(aux_high_y - aux_low_y)//2, high=aux_high_y - aux_low_y)
 
 	for i in range(randx, randx + img.shape[0]):
 		for j in range(randy, randy + img.shape[1]):
