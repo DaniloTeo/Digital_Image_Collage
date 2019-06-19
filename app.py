@@ -2,7 +2,7 @@ import cv2
 from cv2 import saliency
 import numpy as np
 from numpy.random import randint
-from scipy import stat
+from scipy import stats
 
 # k-means para fazer colagem com objetos similares ou diferentes [dataset de stickers]
 
@@ -28,7 +28,7 @@ def get_background():
 		file = randint(1, FOLDER_RANGE_BG[folder-1]);
 		bg = cv2.imread("./My_Flickr/images/" + str(folder) + "/" + str(file) + ".jpg")
 
-
+	print(f"Background file: {folder}/{file}.jpg")
 	return bg
 
 def get_sticker_list():
@@ -37,7 +37,7 @@ def get_sticker_list():
 	arr_list = []
 
 	for folder in range(1, 10):
-		for file in range(0, FOLDER_RANGE[folder-1])
+		for file in range(0, FOLDER_RANGE[folder-1]):
 
 			img = cv2.imread("./Imagens_Teste/" + str(folder) + "/"+str(file)+".jpg")
 			#print(f"Sticker file {n}: {folder}/{file}.jpg")
@@ -74,7 +74,7 @@ def get_sticker_list():
 			sticker_list.append(threshimg)
 			arr_list.append(arr)
 
-	return sticker_list, dataset
+	return sticker_list, dataset, arr_list
 
 def position_sticker(n, sticker, bg):
 	# Arvore de decisao do quadrante sobre o qual o sticker sera colado
@@ -112,24 +112,24 @@ def collage(randx, randy, img, arr,bg):
 #----------------------------------------------------------------------------------------
 
 bg = get_background()
-print(f"Background file: {folder}/{file}.jpg")
+
 
 #bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
 
 n_pics = int(input("Enter the number of stickers to be generated: "))
 
-sticker_list, dataset = get_sticker_list()
+sticker_list, dataset, arr_list = get_sticker_list()
 dataset.append(stats.mode(np.asarray(bg))[0][0])
 
-for i in range(n_pics);
+for i in range(n_pics):
 	# Get the sticker to be pasted on the background
-	sticker, arr = select_sticker()
+	#sticker, arr = select_sticker()
 
 	# Get the position it'll be pasted on
-	randx, randy = position_sticker(i, sticker, bg)
+	randx, randy = position_sticker(i, sticker_list[i], bg)
 
 	# Atualizacao do Background agora contendo o sticker
-	bg = collage(randx, randy, sticker, arr, bg)
+	bg = collage(randx, randy, sticker_list[i], arr_list[i], bg)
 	
 
 
