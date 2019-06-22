@@ -170,13 +170,14 @@ def select_sticker(bg, sticker_list, arr_list, dataset, n_pics):
 	# Criacao do vetor de clusters
 	cluster = kmeans(dataset, k = 10, n = 3, seed = 30)
 
-	for i in range(10):
-		print(cluster[i].tam)
-
 	# Identifica qual cluster o background mais se aproxima
 	w = which_cluster(bg, cluster, 0, k = 10)
 
+	# Retorna  a lista de stickers e o contorno do cluster mais próximo do background
 	slist, alist = cluster[w].return_images_array(sticker_list, arr_list)
+	
+	# Se a lista não for suficiente para o numero de imagens pedidas,
+	# acrescenta-se imagens de outros clusters mais próximos
 	it = 1
 	while len(alist) < n_pics:
 		w = which_cluster(bg, cluster, it, k = 10)
@@ -200,8 +201,10 @@ def main():
 
 	n_pics = int(input("Enter the number of stickers to be generated: "))
 
+	# Retorna a lista de todos os stickers e contornos, assim como a moda dos stickers em "dataset"
 	sticker_list, dataset, arr_list = get_sticker_list()
 
+	# Retorna a lista de stickers e de contornos a serem colados
 	sticker_selected, arr_selected = select_sticker(stats.mode(bg)[0][0][0], sticker_list, arr_list, dataset, n_pics)
 
 	for i in range(n_pics):
