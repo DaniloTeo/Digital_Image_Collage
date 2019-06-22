@@ -145,12 +145,6 @@ def which_cluster(img, cluster, it, k):
 
 	return w
 
-def clear_clusters(cluster, k, size):
-	for i in range(k):
-		cluster[i].array = np.zeros((size, cluster[i].centroid.shape[0]))
-	return cluster
-
-
 def kmeans(ilist, k, n, seed):
 	random.seed(seed)
 	ids = np.sort(random.sample(range(0, len(ilist)), k))
