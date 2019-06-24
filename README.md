@@ -51,7 +51,7 @@ We considered using the K-Means method yet again within the project for defining
  See files in the `examples` folder
 
 ### Instructions for running the demo:
-* On a terminal, inside de `demo` folder type in:
+* On a terminal, inside the folder where the code is, type in:
 `python3 app.py`
 
 * The program will request the number of clusters to be used in the K-Means algorithm. Keep in mind that the bigger this number, the less stickers will be pasted on the final output.
