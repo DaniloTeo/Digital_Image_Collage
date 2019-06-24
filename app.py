@@ -4,6 +4,7 @@ import numpy as np
 from numpy.random import randint
 from scipy import stats
 import random
+from sklearn.cluster import KMeans
 
 # k-means para fazer colagem com objetos similares ou diferentes [dataset de stickers]
 
@@ -12,36 +13,23 @@ FOLDER_RANGE = [12, 18, 17, 4, 11, 30, 2, 6, 10, 0]
 
 # Folder sizes for the My_Flickr/ folder
 FOLDER_RANGE_BG = [388, 30, 357, 24, 390, 28]
-
-# class Cluster:
-# 	def __init__(self, centroid, size):
-# 		self.tam = 0
-# 		self.array = np.zeros((size, centroid.shape[0]))
-# 		self.centroid = centroid
-
-# 	def add(self, img):
-# 		self.array[self.tam] = img
-# 		self.tam += 1
-
-# 	def calc_centroid(self):
-# 		dim = self.centroid.shape[0]
-# 		summ = np.zeros(dim)
-
-# 		for i in range(self.tam):
-# 			for j in range(dim):
-# 				summ[j] = summ[j] + self.array[i][j]
-
-# 		self.centroid = summ/(self.tam+1)
-
-# 	def return_images_array(self, sticker_list, arr_list):
-# 		slist = []
-# 		alist = []
-# 		for i in range(self.tam):
-# 			#print(type(sticker_list[int(self.array[i][3])]))
-# 			#print(type(arr_list[int(self.array[i][3])]))
-# 			slist.append(sticker_list[int(self.array[i][3])])
-# 			alist.append(arr_list[int(self.array[i][3])])
-# 		return slist, alist
+# Calculate the mode of each image in the sticker list, considering only the selected pixels (in the get_sticker_list method)
+def modas(sticker_list, arr_list):
+	modas = []	
+	for i in range(len(sticker_list)):
+		aux_sticker = np.reshape(sticker_list[i], (sticker_list[i].shape[0] * sticker_list[i].shape[1], sticker_list[i].shape[2]))
+		aux_arr = np.reshape(arr_list[i], (arr_list[i].shape[0] * arr_list[i].shape[1], arr_list[i].shape[2]))
+		a = np.where(aux_arr == [255, 255, 255])[0]
+		moda = stats.mode(aux_sticker[a], axis = 0)[0][0]
+		modas.append(moda)
+	return modas
+# Use the KMeans algorithm to classify each sticker and the background, based on their modes.
+# Then the index of the stickers with the same classification as the background is returned.
+def clusters(bg, sticker_list, arr_list, moda_list):
+	bg_mode = stats.mode(bg)[0][0][0]
+	km = KMeans(n_clusters = 5).fit(moda_list)
+	bg_cluster = km.predict([bg_mode])
+	return np.where(km.labels_ == bg_cluster)[0]
 
 def get_background():
 	# Pick the folder and the file randomly
@@ -69,7 +57,6 @@ def get_sticker_list():
 		for file in range(FOLDER_RANGE[folder-1]):
 
 			img = cv2.imread("./Imagens_Teste/" + str(folder) + "/"+str(file)+".jpg")
-			#print(f"Sticker file {n}: {folder}/{file}.jpg")
 		
 			# Calcula a saliencia para a imagem lida 
 			sal = cv2.saliency.StaticSaliencySpectralResidual_create()
@@ -78,8 +65,6 @@ def get_sticker_list():
 
 			# Calcula o Threshold de Otsu sobre a saliencia da imagem
 			thresh = cv2.threshold(map.astype("uint8"), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-			#cv2.imshow('image antes', thresh)
 
 			# Encontra os contornos da imagem
 			contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -93,16 +78,8 @@ def get_sticker_list():
 				if cv2.contourArea(cnt) > 0.05 * img.shape[0] * img.shape[1]:
 					cv2.fillConvexPoly(arr, cnt, [255, 255, 255])
 					
-			#cv2.imshow('arr', arr)
 			threshimg = np.array(img)
 			
-			# Guarda a Moda das imagens para o K-Means
-			a = stats.mode(threshimg)[0][0][0]
-			b = np.zeros(4)
-			for i in range(3):
-				b[i] = a[i]
-			b[3] = count
-			dataset.append(b)
 			sticker_list.append(threshimg)
 			arr_list.append(arr)
 			count += 1
@@ -137,69 +114,6 @@ def position_sticker(n, sticker, bg):
 
 	return randx, randy
 
-def which_cluster(img, cluster, it, k):
-	dist = np.zeros(k)
-
-	for i in range(k):
-		r = cluster[i].centroid[0]
-		g = cluster[i].centroid[1]
-		b = cluster[i].centroid[2]
-		dist[i] = np.sqrt(((img[0]-r)**2) + ((img[1]-g)**2) + ((img[2]-b)**2))
-
-	for i in range(it):
-		indices = np.argwhere(dist == -1).flatten()
-		dist = np.delete(dist, indices)
-	
-	w = np.argmin(dist)
-
-	return w
-
-def kmeans(ilist, k, n, seed):
-	random.seed(seed)
-	ids = np.sort(random.sample(range(0, len(ilist)), k))
-	cluster = np.zeros(shape=k, dtype=object)
-
-	for i in range(k):
-		cluster[i] = Cluster(ilist[ids[i]], len(ilist))
-
-	for i in range(n):
-		for x in range(len(ilist)):
-			w = which_cluster(ilist[x], cluster, 0, k)
-			cluster[w].add(ilist[x])
-		for j in range(k):
-			if cluster[j].tam > 0:
-				cluster[j].calc_centroid()
-			if i < n-1:
-				cluster[j].tam = 0
-	
-	return cluster
-
-def select_sticker(bg, sticker_list, arr_list, dataset, n_pics):
-	# Criacao do vetor de clusters
-	cluster = kmeans(dataset, k = 10, n = 3, seed = 30)
-
-	# Identifica qual cluster o background mais se aproxima
-	w = which_cluster(bg, cluster, 0, k = 10)
-
-	# Retorna  a lista de stickers e o contorno do cluster mais próximo do background
-	slist, alist = cluster[w].return_images_array(sticker_list, arr_list)
-	
-	# Se a lista não for suficiente para o numero de imagens pedidas,
-	# acrescenta-se imagens de outros clusters mais próximos
-	it = 1
-	while len(alist) < n_pics:
-		w = which_cluster(bg, cluster, it, k = 10)
-		s, a = cluster[w].return_images_array(sticker_list, arr_list)
-		
-		slist.append(s)
-		alist.append(a)
-
-	aux = list(zip(slist, alist))
-	random.shuffle(aux)
-	slist, alist = zip(*aux)
-
-	return slist, alist
-
 def collage(randx, randy, img, arr,bg):
 	print(f"img.shape: {img.shape}")
 	# Colagem per se do sticker sobre o background com interpolacao entre pixels do background e da imagem
@@ -213,23 +127,21 @@ def collage(randx, randy, img, arr,bg):
 def main():
 	bg = get_background()
 	print(f"bg.shape: {bg.shape}")
-	#bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
-
-	n_pics = int(input("Enter the number of stickers to be generated: "))
-
+	
 	# Retorna a lista de todos os stickers e contornos, assim como a moda dos stickers em "dataset"
 	sticker_list, dataset, arr_list = get_sticker_list()
 
 	# Retorna a lista de stickers e de contornos a serem colados
-	sticker_selected, arr_selected = select_sticker(stats.mode(bg)[0][0][0], sticker_list, arr_list, dataset, n_pics)
-
-	for i in range(n_pics):
-
+	moda_list = modas(sticker_list, arr_list)
+	sticker_index = clusters(bg, sticker_list, arr_list, moda_list)
+	
+	for i in sticker_index:
+		print(f"sticker escolhido {i}!")
 		# Get the position it'll be pasted on
-		randx, randy = position_sticker(i, np.asarray(sticker_selected[i]), bg)
+		randx, randy = position_sticker(i, np.asarray(sticker_list[i]), bg)
 
 		# Atualizacao do Background agora contendo o sticker
-		bg = collage(randx, randy, np.asarray(sticker_selected[i]), arr_selected[i], bg)
+		bg = collage(randx, randy, np.asarray(sticker_list[i]), arr_list[i], bg)
 
 	cv2.imshow('collage', bg)
 	cv2.waitKey(0)
