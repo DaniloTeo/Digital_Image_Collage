@@ -21,7 +21,7 @@ Certain images from each dataset were selected to better suit our project. We fo
 Another selection was made for the Flickr15K dataset, this time preferring landscape pictures rather than pictures of specific items such as sunflowers. The new dataset is located at the `My_Flickr` folder.
 
 ### Steps:
-1. The number of clusters for the K-Means algorithm is provided as input.
+* The number of clusters for the K-Means algorithm is provided as input.
 
 * The background will be randomly selected from the `My_Flickr` dataset;
 
