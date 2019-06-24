@@ -13,33 +13,35 @@ FOLDER_RANGE = [12, 18, 17, 4, 11, 30, 2, 6, 10, 0]
 # Folder sizes for the My_Flickr/ folder
 FOLDER_RANGE_BG = [388, 30, 357, 24, 390, 28]
 
-class Cluster:
-	def __init__(self, centroid, size):
-		self.tam = 0
-		self.array = np.zeros((size, centroid.shape[0]))
-		self.centroid = centroid
+# class Cluster:
+# 	def __init__(self, centroid, size):
+# 		self.tam = 0
+# 		self.array = np.zeros((size, centroid.shape[0]))
+# 		self.centroid = centroid
 
-	def add(self, img):
-		self.array[self.tam] = img
-		self.tam += 1
+# 	def add(self, img):
+# 		self.array[self.tam] = img
+# 		self.tam += 1
 
-	def calc_centroid(self):
-		dim = self.centroid.shape[0]
-		summ = np.zeros(dim)
+# 	def calc_centroid(self):
+# 		dim = self.centroid.shape[0]
+# 		summ = np.zeros(dim)
 
-		for i in range(self.tam):
-			for j in range(dim):
-				summ[j] = summ[j] + self.array[i][j]
+# 		for i in range(self.tam):
+# 			for j in range(dim):
+# 				summ[j] = summ[j] + self.array[i][j]
 
-		self.centroid = summ/(self.tam+1)
+# 		self.centroid = summ/(self.tam+1)
 
-	def return_images_array(self, sticker_list, arr_list):
-		slist = []
-		alist = []
-		for i in range(self.tam):
-			slist.append(sticker_list[int(self.array[i][3])])
-			alist.append(arr_list[int(self.array[i][3])])
-		return slist, alist
+# 	def return_images_array(self, sticker_list, arr_list):
+# 		slist = []
+# 		alist = []
+# 		for i in range(self.tam):
+# 			#print(type(sticker_list[int(self.array[i][3])]))
+# 			#print(type(arr_list[int(self.array[i][3])]))
+# 			slist.append(sticker_list[int(self.array[i][3])])
+# 			alist.append(arr_list[int(self.array[i][3])])
+# 		return slist, alist
 
 def get_background():
 	# Pick the folder and the file randomly
@@ -108,23 +110,30 @@ def get_sticker_list():
 	return sticker_list, dataset, arr_list
 
 def position_sticker(n, sticker, bg):
+	print(f"sticker shape: {sticker.shape}")
+	print(f"bg shape: {bg.shape}")
+
+	size_x = bg.shape[0] - sticker.shape[0] # dimensao no eixo x da colagem
+	size_y = bg.shape[1] - sticker.shape[1] # dimensao no eixo y da colagem
+
+
 	# Arvore de decisao do quadrante sobre o qual o sticker sera colado
 	# Visando evitar um numero alto demais de overlap
 	if n % 4 == 0:
-		randx = randint(low=0, high=(bg.shape[0] - sticker.shape[0])//2)
-		randy = randint(low=0, high=(bg.shape[1] - sticker.shape[1])//2)
+		randx = randint(low=0, high=(size_x)//2)
+		randy = randint(low=0, high=(size_y)//2)
 	
 	elif n % 4 == 1:
-		randx = randint(low=(bg.shape[0] - sticker.shape[0])//2, high=bg.shape[0] - sticker.shape[0])
-		randy = randint(low=0, high=(bg.shape[1] - sticker.shape[1])//2)
+		randx = randint(low=(size_x)//2, high=size_x)
+		randy = randint(low=0, high=(size_y)//2)
 	
 	elif n % 4 == 2:
-		randx = randint(low=(bg.shape[0] - sticker.shape[0])//2, high=bg.shape[0] - sticker.shape[0])
-		randy = randint(low=(bg.shape[1] - sticker.shape[1])//2, high=bg.shape[1] - sticker.shape[1])
+		randx = randint(low=(size_x)//2, high=size_x)
+		randy = randint(low=(size_y)//2, high=size_y)
 	
 	elif n % 4 == 3:
-		randx = randint(low=0, high=(bg.shape[0] - sticker.shape[0])//2)
-		randy = randint(low=(bg.shape[1] - sticker.shape[1])//2, high=bg.shape[1] - sticker.shape[1])
+		randx = randint(low=0, high=(size_x)//2)
+		randy = randint(low=(size_y)//2, high=size_y)
 
 	return randx, randy
 
@@ -161,8 +170,7 @@ def kmeans(ilist, k, n, seed):
 			if cluster[j].tam > 0:
 				cluster[j].calc_centroid()
 			if i < n-1:
-				for l in range(k):
-					cluster[l].tam = 0
+				cluster[j].tam = 0
 	
 	return cluster
 
@@ -182,21 +190,29 @@ def select_sticker(bg, sticker_list, arr_list, dataset, n_pics):
 	while len(alist) < n_pics:
 		w = which_cluster(bg, cluster, it, k = 10)
 		s, a = cluster[w].return_images_array(sticker_list, arr_list)
+		
 		slist.append(s)
 		alist.append(a)
+
+	aux = list(zip(slist, alist))
+	random.shuffle(aux)
+	slist, alist = zip(*aux)
 
 	return slist, alist
 
 def collage(randx, randy, img, arr,bg):
+	print(f"img.shape: {img.shape}")
 	# Colagem per se do sticker sobre o background com interpolacao entre pixels do background e da imagem
 	for i in range(randx, randx + img.shape[0]):
 		for j in range(randy, randy + img.shape[1]):
+			#print(f"i: {i}\tj: {j}\t(i-randx): {i - randx}\t(j-randy): {j-randy}")
 			if arr[i - randx][j - randy][0] != 0 and arr[i - randx][j - randy][1] != 0 and arr[i - randx][j - randy][2] != 0:
 				bg[i][j] = (3 * (img[i - randx][j - randy].astype(float)) + (bg[i][j].astype(float))) // 4
 	return bg.astype(np.uint8)
 
 def main():
 	bg = get_background()
+	print(f"bg.shape: {bg.shape}")
 	#bg = cv2.resize(bg, (int(bg.shape[1] * 0.15),int(bg.shape[0] * 0.15)))
 
 	n_pics = int(input("Enter the number of stickers to be generated: "))
@@ -210,10 +226,10 @@ def main():
 	for i in range(n_pics):
 
 		# Get the position it'll be pasted on
-		randx, randy = position_sticker(i, sticker_selected[i], bg)
+		randx, randy = position_sticker(i, np.asarray(sticker_selected[i]), bg)
 
 		# Atualizacao do Background agora contendo o sticker
-		bg = collage(randx, randy, sticker_selected[i], arr_selected[i], bg)
+		bg = collage(randx, randy, np.asarray(sticker_selected[i]), arr_selected[i], bg)
 
 	cv2.imshow('collage', bg)
 	cv2.waitKey(0)
